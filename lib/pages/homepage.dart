@@ -37,7 +37,6 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> _initCamera() async {
     try {
-      // Request permissions on Android/iOS
       if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
         final cam = await Permission.camera.request();
         final mic = await Permission.microphone.request();
@@ -50,7 +49,6 @@ class _HomepageState extends State<Homepage> {
         }
       }
 
-      // Start camera preview (desktop/web will auto-approve)
       final Map<String, dynamic> constraints = {
         'audio': true,
         'video': {
@@ -79,7 +77,6 @@ class _HomepageState extends State<Homepage> {
       return;
     }
 
-    // Adjust WebSocket URL automatically
     final String wsUrl;
     if (kIsWeb) {
       wsUrl = 'ws://${Uri.base.host.isEmpty ? 'localhost' : Uri.base.host}:8080';
@@ -103,7 +100,7 @@ class _HomepageState extends State<Homepage> {
       _inCall = false;
       _cameraReady = false;
     });
-    _initCamera(); // restart preview
+    _initCamera();
   }
 
   @override
