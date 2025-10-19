@@ -1,6 +1,10 @@
+// lib/pages/homepage.dart
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'signaling.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -12,78 +16,100 @@ class Homepage extends StatefulWidget {
 class _HomepageState extends State<Homepage> {
   final TextEditingController roomController = TextEditingController();
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  bool _cameraOn = false;
-  bool _isFrontcamera = true ;
+  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+
+  Signaling? _signaling;
+  bool _inCall = false;
+  bool _cameraReady = false;
+  MediaStream? _localStream;
 
   @override
   void initState() {
     super.initState();
-    // _localRenderer.initialize();
-    _initSetup();
-  }
-  Future<void>_initSetup()async{
-    await requestPermissions();
-    await _localRenderer.initialize();
-  }
-  Future<void> requestPermissions()async{
-    // ignore: unused_local_variable
-    final statuses = await[
-      Permission.camera, 
-      Permission.microphone,   ].request();
+    _initializeRenderers();
   }
 
-  Future<void> _startCamera() async {
+  Future<void> _initializeRenderers() async {
+    await _localRenderer.initialize();
+    await _remoteRenderer.initialize();
+    await _initCamera();
+  }
+
+  Future<void> _initCamera() async {
     try {
-      final mediaConstraints = {
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        final cam = await Permission.camera.request();
+        final mic = await Permission.microphone.request();
+
+        if (!cam.isGranted || !mic.isGranted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Camera/Microphone permission denied")),
+          );
+          return;
+        }
+      }
+
+      final Map<String, dynamic> constraints = {
         'audio': true,
         'video': {
-          'facingMode': _isFrontcamera ? 'user' : 'environment',
+          'facingMode': 'user',
+          'width': {'ideal': 1280},
+          'height': {'ideal': 720},
+          'frameRate': {'ideal': 30},
         },
       };
 
-      final stream =
-          await navigator.mediaDevices.getUserMedia(mediaConstraints);
-
-      setState(() {
-        _localRenderer.srcObject = stream;
-        _cameraOn = true;
-      });
+      _localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      _localRenderer.srcObject = _localStream;
+      setState(() => _cameraReady = true);
     } catch (e) {
-      debugPrint('Error accessing camera: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to access camera: $e')),
-      );
+      debugPrint("Camera init failed: $e");
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Camera error: $e")));
     }
   }
 
-  Future<void > switchCamera()async{
-    try {
-      _isFrontcamera = !_isFrontcamera;
-      await _stopCamera();
-      await _startCamera();
-    }catch(e){
-      debugPrint('Error switiching camera: $e');
+  Future<void> _joinRoom({required bool isCaller}) async {
+    final roomId = roomController.text.trim();
+    if (roomId.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Enter a valid Room ID")));
+      return;
     }
+
+    final String wsUrl;
+    if (kIsWeb) {
+      wsUrl = 'ws://${Uri.base.host.isEmpty ? 'localhost' : Uri.base.host}:8080';
+    } else if (Platform.isAndroid) {
+      wsUrl = 'ws://10.0.2.2:8080';
+    } else {
+      wsUrl = 'ws://localhost:8080';
+    }
+
+    _signaling = Signaling(_localRenderer, _remoteRenderer, wsUrl: wsUrl);
+    await _signaling!.connect(roomId, isCaller: isCaller);
+    setState(() => _inCall = true);
   }
 
-  Future<void> _stopCamera() async {
-    try {
-      _localRenderer.srcObject?.getTracks().forEach((track) {
-        track.stop();
-      });
-      _localRenderer.srcObject = null;
-      setState(() {
-        _cameraOn = false;
-      });
-    } catch (e) {
-      debugPrint('Error stopping camera: $e');
-    }
+  void _hangUp() {
+    _signaling?.dispose();
+    _localRenderer.srcObject = null;
+    _remoteRenderer.srcObject = null;
+    _localStream?.getTracks().forEach((t) => t.stop());
+    setState(() {
+      _inCall = false;
+      _cameraReady = false;
+    });
+    _initCamera();
   }
 
   @override
   void dispose() {
-    _localRenderer.dispose();
     roomController.dispose();
+    _localRenderer.dispose();
+    _remoteRenderer.dispose();
+    _localStream?.dispose();
+    _signaling?.dispose();
     super.dispose();
   }
 
@@ -91,99 +117,91 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Join a Room',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Omegle-Style Video Chat'),
         centerTitle: true,
-        elevation: 2,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: !_inCall ? _buildPreviewUI() : _buildCallUI(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreviewUI() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Container(
+            color: Colors.black,
+            child: Center(
+              child: _cameraReady
+                  ? RTCVideoView(_localRenderer, mirror: true)
+                  : const CircularProgressIndicator(),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          controller: roomController,
+          decoration: const InputDecoration(
+            labelText: 'Room ID',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            const Text(
-              "Enter Room ID to Join Video Call",
-              style: TextStyle(fontSize: 18),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.call),
+              label: const Text("Create Call"),
+              onPressed: _cameraReady ? () => _joinRoom(isCaller: true) : null,
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: roomController,
-              decoration: InputDecoration(
-                hintText: "Room ID (e.g. room123)",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.meeting_room),
+              label: const Text("Join Call"),
+              onPressed: _cameraReady ? () => _joinRoom(isCaller: false) : null,
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              onPressed: () {
-                final roomID = roomController.text.trim();
-                if (roomID.isNotEmpty) {
-                  _startCamera();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Enter Room ID first")),
-                  );
-                }
-              },
-              child: const Text("Join Room & Start Camera"),
-            ),
-            const SizedBox(height: 30),
-            // Camera Preview Section
-            if (_cameraOn)
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: const [
-                      BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 10,
-                          offset: Offset(0, 4))
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: RTCVideoView(
-                      _localRenderer,
-                      mirror: true,
-                    ),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 20),
-            if (_cameraOn)
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  minimumSize: const Size(double.infinity, 45),
-                ),
-                icon: const Icon(Icons.stop),
-                label: const Text("Stop Camera"),
-                onPressed: _stopCamera,
-              ),
-        
-            if (_cameraOn)
-               ElevatedButton.icon(
-                 style: ElevatedButton.styleFrom(
-                   backgroundColor: Colors.blue,
-                   minimumSize: const Size(double.infinity, 45),
-                 ),
-                 icon: const Icon(Icons.cameraswitch),
-                 label: const Text("Switch Camera"),
-                 onPressed: switchCamera,
-  ),
           ],
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _buildCallUI() {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Container(
+            color: Colors.black,
+            child: RTCVideoView(_remoteRenderer),
+          ),
+        ),
+        Positioned(
+          bottom: 20,
+          right: 20,
+          child: SizedBox(
+            width: 140,
+            height: 180,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: RTCVideoView(_localRenderer, mirror: true),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 16,
+          right: 16,
+          child: FloatingActionButton(
+            backgroundColor: Colors.red,
+            onPressed: _hangUp,
+            child: const Icon(Icons.call_end),
+          ),
+        ),
+      ],
     );
   }
 }
