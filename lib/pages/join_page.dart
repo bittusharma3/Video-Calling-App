@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:video_calling_app/pages/signaling.dart';
+import 'package:video_calling_app/services/signaling.dart';
+import 'package:video_calling_app/services/signaling_service.dart';
 
 class JoinPage extends StatefulWidget {
   final String roomId;
@@ -28,12 +29,19 @@ class _JoinPageState extends State<JoinPage> {
     _init();
   }
 
-  Future<void> _init() async {
-    await _localRenderer.initialize();
-    await _remoteRenderer.initialize();
-    await _initCamera();
-    await _startSignaling(isCaller: false);
-  }
+Future<void> _init() async {
+  await _localRenderer.initialize();
+  await _remoteRenderer.initialize();
+  await _initCamera();
+
+  _signaling = await SignalingService.startSignaling(
+    localRenderer: _localRenderer,
+    remoteRenderer: _remoteRenderer,
+    roomId: widget.roomId,
+    isCaller: false,
+  );
+}
+
 
   Future<void> _initCamera() async {
     try {
@@ -42,6 +50,7 @@ class _JoinPageState extends State<JoinPage> {
         final mic = await Permission.microphone.request();
 
         if (!cam.isGranted || !mic.isGranted) {
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Camera/Microphone permission denied"),
@@ -71,21 +80,6 @@ class _JoinPageState extends State<JoinPage> {
     } catch (e) {
       debugPrint("Camera error: $e");
     }
-  }
-
-  Future<void> _startSignaling({required bool isCaller}) async {
-    final String wsUrl;
-    if (kIsWeb) {
-      wsUrl =
-          'ws://${Uri.base.host.isEmpty ? 'localhost' : Uri.base.host}:8080';
-    } else if (Platform.isAndroid) {
-      wsUrl = 'ws://10.0.2.2:8080';
-    } else {
-      wsUrl = 'ws://localhost:8080';
-    }
-
-    _signaling = Signaling(_localRenderer, _remoteRenderer, wsUrl: wsUrl);
-    await _signaling!.connect(widget.roomId, isCaller: isCaller);
   }
 
   void _toggleMic() {

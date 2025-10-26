@@ -5,7 +5,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class TestCameraPage extends StatefulWidget {
-  const TestCameraPage({Key? key}) : super(key: key);
+  const TestCameraPage({super.key});
 
   @override
   State<TestCameraPage> createState() => _TestCameraPageState();
