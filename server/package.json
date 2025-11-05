@@ -1,12 +1,13 @@
 {
-  "name": "server",
+  "name": "simple-signaling-server",
   "version": "1.0.0",
-  "main": "server.js",
-  "type": "module",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "main": "index.js",
+  "license": "MIT",
   "dependencies": {
-    "ws": "^8.18.3"
+    "express": "^4.18.2",
+    "ws": "^8.13.0"
+  },
+  "scripts": {
+    "start": "node index.js"
   }
 }

@@ -1,9 +1,14 @@
+// lib/pages/homepage.dart
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import 'call_page.dart';
-import 'join_page.dart';
+import 'package:video_calling_app/config/app_config.dart';
+import 'package:video_calling_app/utils/theme_controller.dart';
 
 class Homepage extends StatefulWidget {
-  const Homepage({super.key});
+  const Homepage({Key? key}) : super(key: key);
 
   @override
   State<Homepage> createState() => _HomepageState();
@@ -11,22 +16,63 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   final TextEditingController roomController = TextEditingController();
+  bool _loadingMatch = false;
 
-  void _navigateToNextPage({required bool isCaller}) {
+  String _makeRandomRoomId() {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return (now % 0xFFFFFF).toRadixString(16).padLeft(6, '0');
+  }
+
+  void _createRoomAndCall() {
+    final roomId = _makeRandomRoomId();
+    Navigator.push(context, MaterialPageRoute(builder: (_) => CallPage(roomId: roomId, isCaller: true)));
+  }
+
+  void _joinRoom() {
     final roomId = roomController.text.trim();
-
     if (roomId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid Room ID")),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Enter a room id")));
       return;
     }
+    Navigator.push(context, MaterialPageRoute(builder: (_) => CallPage(roomId: roomId, isCaller: false)));
+  }
 
-    final nextPage = isCaller
-        ? CallPage(roomId: roomId)
-        : JoinPage(roomId: roomId);
+  Future<void> _randomPair() async {
+    setState(() => _loadingMatch = true);
+    StreamSubscription? sub;
+    try {
+      final uri = Uri.parse(AppConfig.wsUrl);
+      final channel = WebSocketChannel.connect(uri);
+      sub = channel.stream.listen((msg) {
+        try {
+          final data = jsonDecode(msg);
+          final type = data['type'];
+          if (type == 'match') {
+            final room = data['room'] as String;
+            final role = (data['role'] as String?) ?? 'caller';
+            channel.sink.close();
+            sub?.cancel();
+            setState(() => _loadingMatch = false);
+            final isCaller = role == 'caller';
+            Navigator.push(context, MaterialPageRoute(builder: (_) => CallPage(roomId: room, isCaller: isCaller)));
+          } else if (type == 'waiting') {
+            // optional UI indicator
+          }
+        } catch (_) {}
+      });
 
-    Navigator.push(context, MaterialPageRoute(builder: (context) => nextPage));
+      channel.sink.add(jsonEncode({'type': 'find'}));
+      Future.delayed(const Duration(seconds: 12), () {
+        if (_loadingMatch) {
+          try { channel.sink.close(); sub?.cancel(); } catch (_) {}
+          setState(() => _loadingMatch = false);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("No match found")));
+        }
+      });
+    } catch (e) {
+      setState(() => _loadingMatch = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
   }
 
   @override
@@ -35,121 +81,88 @@ class _HomepageState extends State<Homepage> {
     super.dispose();
   }
 
+  Widget _themeIconButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return IconButton(
+      tooltip: isDark ? "Switch to Light Mode" : "Switch to Dark Mode",
+      icon: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, anim) => RotationTransition(
+          turns: child.key == const ValueKey('sun')
+              ? Tween(begin: 0.75, end: 1.0).animate(anim)
+              : Tween(begin: 0.25, end: 1.0).animate(anim),
+          child: FadeTransition(opacity: anim, child: child),
+        ),
+        child: Icon(
+          isDark ? Icons.wb_sunny_rounded : Icons.nights_stay_rounded,
+          key: ValueKey(isDark ? 'sun' : 'moon'),
+          color: isDark ? Colors.amberAccent : Colors.deepPurple,
+        ),
+      ),
+      onPressed: () async {
+        await ThemeController.toggleTheme();
+        setState(() {}); // rebuild to reflect icon change immediately
+      },
+    );
+  }
+
+  Widget _bigButton(String label, {required VoidCallback onTap, Color? color}) {
+    return ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 22),
+        backgroundColor: color ?? Colors.blueAccent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 6,
+      ),
+      child: Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Center(
-          child: const Text(
-            "V I D E O - C H A T",
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white, width: 0.5),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.menu, color: Colors.white),
-            ),
-          ),
-        ),
+        title: const Text('Connect - Video Chat'),
+        centerTitle: true,
+        elevation: 2,
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.menu, color: Colors.white),
-              ),
-            ),
-          ),
+          _themeIconButton(),
         ],
       ),
-      backgroundColor: const Color.fromARGB(255, 23, 23, 23),
-
-      body: SafeArea(
+      body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextField(
-                  controller: roomController,
-                  style: const TextStyle(color: Colors.white),
-
-                  decoration: const InputDecoration(
-                    labelText: 'Enter Room ID',
-                    labelStyle: TextStyle(color: Colors.white),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
+          padding: const EdgeInsets.all(20),
+          child: Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            elevation: 8,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  const Text('Instant Video Chat', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: roomController,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter Room ID (paste)',
+                      border: OutlineInputBorder(),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white, width: 2),
-                    ),
-
-                    border: OutlineInputBorder(),
                   ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 0, 0, 0),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: _bigButton('Join Room', onTap: _joinRoom, color: Colors.green)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _bigButton('Create & Call', onTap: _createRoomAndCall, color: Colors.blueAccent)),
+                    ],
                   ),
-                  icon: const Icon(Icons.video_call, color: Colors.white),
-                  label: const Text(
-                    "Create Call",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: () => _navigateToNextPage(isCaller: true),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 0, 0, 0),
-                  ),
-                  icon: const Icon(Icons.meeting_room, color: Colors.white),
-                  label: const Text(
-                    "Join Call",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: () => _navigateToNextPage(isCaller: false),
-                ),
-                const SizedBox(height: 210),
-                const Text(
-                  '''Terms and Conditions
-
-Welcome to [Your App Name], your gateway to spontaneous video chats with strangers around the world! By using our app, you agree to follow these simple but important rules to keep the experience fun, safe, and respectful for everyone.
-
-Our platform connects you randomly to other users for live video conversations — a place to meet new people, share moments, and explore new friendships. However, please remember that with great freedom comes great responsibility. You must not share any content that is offensive, harmful, hateful, or illegal. Harassment, hate speech, explicit content, and any abusive behavior are strictly prohibited. We reserve the right to monitor conversations and take immediate action against users who violate these rules, including banning or suspending accounts without warning.
-
-Your privacy and safety are very important to us. While we do not record or store your video or audio streams, please be aware that you’re connecting directly with strangers, and we cannot guarantee their identity or intentions. Always use caution and avoid sharing personal or sensitive information.
-
-This app is designed for users aged 18 and over. If you’re underage, please exit now. By continuing, you acknowledge the risks involved and agree not to hold us responsible for any issues arising from your use of the app.
-
-We may update these Terms and Conditions from time to time to improve your experience — so be sure to check back regularly. If you don’t agree with any part of these terms, please discontinue using the app immediately.
-
-Thank you for being part of our community. Now go ahead, connect, chat, and have fun — responsibly!''',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  _bigButton(_loadingMatch ? 'Finding...' : 'Random Pair (Find Stranger)', onTap: _loadingMatch ? (){} : _randomPair, color: Colors.orange),
+                  const SizedBox(height: 14),
+                  const Text('Tip: Use Create to generate a simple 6-char room id and share it.', style: TextStyle(fontSize: 12), textAlign: TextAlign.center),
+                ],
+              ),
             ),
           ),
         ),

@@ -1,18 +1,24 @@
 // lib/config/app_config.dart
-import 'package:flutter/foundation.dart';
-
 class AppConfig {
-  // Production WebSocket endpoint hosted on Render
-  static const String _prodUrl = 'wss://video-calling-app-ernw.onrender.com';
+  // Set this to your signaling server
+  // For local LAN testing: 'ws://192.168.x.y:8080'
+  // For ngrok: 'wss://xxxxx.ngrok.io'
+  // For production: 'wss://yourdomain.com'
+  static const String wsUrl = 'ws://YOUR_SIGNALING_SERVER:8080';
 
-  // Local development URL fallback (optional)
-  static const String _devUrl = 'ws://localhost:8080';
-
-  static String get wsUrl {
-    // If you run on production (web or mobile build release), use prod URL
-    if (kReleaseMode) return _prodUrl;
-
-    // Otherwise in dev, fallback to your local WS
-    return _devUrl;
-  }
+  // ICE servers (add your TURN credentials here)
+  static const List<Map<String, dynamic>> iceServers = [
+    { 'urls': 'stun:stun.l.google.com:19302' },
+    {
+      'urls': 'turn:YOUR_PUBLIC_IP:3478',
+      'username': 'turnuser',
+      'credential': 'turnpassword'
+    },
+    // Optionally secure TURN:
+    // {
+    //   'urls': 'turns:yourdomain.com:5349',
+    //   'username': 'turnuser',
+    //   'credential': 'turnpassword'
+    // }
+  ];
 }

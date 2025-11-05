@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+  coturn:
+    image: instrumentisto/coturn:4.6.2
+    container_name: coturn
+    restart: unless-stopped
+    ports:
+      - "3478:3478"
+      - "3478:3478/udp"
+      - "5349:5349"        # optional TLS (if you configure TLS)
+      - "49152-65535:49152-65535/udp"
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
+      - ./coturn-data:/var/lib/coturn
+    environment:
+      - TZ=Etc/UTC
