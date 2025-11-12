@@ -24,8 +24,7 @@ class MainApp extends StatelessWidget {
   }
 }
 
-// ------------------ NEW UI STARTS HERE ------------------
-
+ 
 class MainUIScreen extends StatefulWidget {
   const MainUIScreen({super.key});
 
@@ -34,12 +33,12 @@ class MainUIScreen extends StatefulWidget {
 }
 
 class _MainUIScreenState extends State<MainUIScreen> {
-  int _selectedIndex = 2; // Default index (Home)
+  int _selectedIndex = 2;  
 
   final List<Widget> _pages = const [
     ProfilePage(),
     PlansPage(),
-    Homepage(), // using your existing homepage.dart here
+    Homepage(),  
     ReportPage(),
     ActivityPage(),
   ];

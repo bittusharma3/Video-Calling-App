@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:video_calling_app/pages/start_page.dart';
 import 'call_page.dart';
 import 'join_page.dart';
 import '../widgets/common_appbar.dart';
@@ -193,86 +192,167 @@ class _HomepageState extends State<Homepage> {
   }
 
   // ========================= START ROOM TAB =========================
-  // Widget _buildStartRoomTab(BuildContext context) {
-  //   return Center(
-  //     child: AnimatedSwitcher(
-  //       duration: const Duration(milliseconds: 300),
-  //       child: isLoading
-  //           ? const CircularProgressIndicator()
-  //           : Container(
-  //               width: 350,
-  //               padding: const EdgeInsets.all(24),
-  //               decoration: BoxDecoration(
-  //                 color: Colors.white,
-  //                 borderRadius: BorderRadius.circular(16),
-  //                 boxShadow: [
-  //                   BoxShadow(
-  //                     color: Colors.black.withOpacity(0.1),
-  //                     blurRadius: 12,
-  //                     offset: const Offset(0, 4),
-  //                   ),
-  //                 ],
-  //               ),
-  //               child: Column(
-  //                 mainAxisSize: MainAxisSize.min,
-  //                 children: [
-  //                   Text(
-  //                     "Start a New Room",
-  //                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-  //                       fontWeight: FontWeight.bold,
-  //                     ),
-  //                   ),
-  //                   const SizedBox(height: 20),
-  //                   TextField(
-  //                     controller: roomController,
-  //                     decoration: InputDecoration(
-  //                       labelText: "Enter Room ID",
-  //                       border: OutlineInputBorder(
-  //                         borderRadius: BorderRadius.circular(12),
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   const SizedBox(height: 25),
-  //                   SizedBox(
-  //                     width: double.infinity,
-  //                     child: ElevatedButton(
-  //                       onPressed: () => _navigateToNextPage(isCaller: true),
-  //                       child: const Text("Confirm & Start"),
-  //                     ),
-  //                   ),
-  //                   const SizedBox(height: 10),
-  //                   const Text(
-  //                     "Create a new private room to start a secure call.",
-  //                     textAlign: TextAlign.center,
-  //                     style: TextStyle(fontSize: 13, color: Colors.black54),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //     ),
-  //   );
-  // }
+//   // Widget _buildStartRoomTab(BuildContext context) {
+//   //   return Center(
+//   //     child: AnimatedSwitcher(
+//   //       duration: const Duration(milliseconds: 300),
+//   //       child: isLoading
+//   //           ? const CircularProgressIndicator()
+//   //           : Container(
+//   //               width: 350,
+//   //               padding: const EdgeInsets.all(24),
+//   //               decoration: BoxDecoration(
+//   //                 color: Colors.white,
+//   //                 borderRadius: BorderRadius.circular(16),
+//   //                 boxShadow: [
+//   //                   BoxShadow(
+//   //                     color: Colors.black.withOpacity(0.1),
+//   //                     blurRadius: 12,
+//   //                     offset: const Offset(0, 4),
+//   //                   ),
+//   //                 ],
+//   //               ),
+//   //               child: Column(
+//   //                 mainAxisSize: MainAxisSize.min,
+//   //                 children: [
+//   //                   Text(
+//   //                     "Start a New Room",
+//   //                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
+//   //                       fontWeight: FontWeight.bold,
+//   //                     ),
+//   //                   ),
+//   //                   const SizedBox(height: 20),
+//   //                   TextField(
+//   //                     controller: roomController,
+//   //                     decoration: InputDecoration(
+//   //                       labelText: "Enter Room ID",
+//   //                       border: OutlineInputBorder(
+//   //                         borderRadius: BorderRadius.circular(12),
+//   //                       ),
+//   //                     ),
+//   //                   ),
+//   //                   const SizedBox(height: 25),
+//   //                   SizedBox(
+//   //                     width: double.infinity,
+//   //                     child: ElevatedButton(
+//   //                       onPressed: () => _navigateToNextPage(isCaller: true),
+//   //                       child: const Text("Confirm & Start"),
+//   //                     ),
+//   //                   ),
+//   //                   const SizedBox(height: 10),
+//   //                   const Text(
+//   //                     "Create a new private room to start a secure call.",
+//   //                     textAlign: TextAlign.center,
+//   //                     style: TextStyle(fontSize: 13, color: Colors.black54),
+//   //                   ),
+//   //                 ],
+//   //               ),
+//   //             ),
+//   //     ),
+//   //   );
+//   // }
 
-// Replace your current _buildStartRoomTab method with this:
+// // Replace your current _buildStartRoomTab method with this:
+// Widget _buildStartRoomTab(BuildContext context) {
+//   return Center(
+//     child: SizedBox(
+//       width: 350,
+//       child: ElevatedButton(
+//         onPressed: () {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(builder: (_) => const CallPage(roomId: roomId , isCaller: true)),
+//           );
+//         },
+//         child: const Padding(
+//           padding: EdgeInsets.symmetric(vertical: 20),
+//           child: Text(
+//             "Go to Start Room",
+//             style: TextStyle(fontSize: 16),
+//           ),
+//         ),
+//       ),
+//     ),
+//   );
+// }
+
+
 Widget _buildStartRoomTab(BuildContext context) {
   return Center(
-    child: SizedBox(
-      width: 350,
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const StartRoomPage()),
-          );
-        },
-        child: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: Text(
-            "Go to Start Room",
-            style: TextStyle(fontSize: 16),
-          ),
-        ),
-      ),
+    child: AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: isLoading
+          ? const CircularProgressIndicator()
+          : Container(
+              width: 350,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Start a New Room",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: roomController,
+                    decoration: InputDecoration(
+                      labelText: "Enter Room ID",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 25),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final roomId = roomController.text.trim();
+                        if (roomId.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Please enter a Room ID"),
+                            ),
+                          );
+                          return;
+                        }
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CallPage(
+                              roomId: roomId,
+                              isCaller: true, // ✅ very important
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text("Confirm & Start"),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Create a new private room to start a secure call.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+                ],
+              ),
+            ),
     ),
   );
 }
@@ -322,7 +402,23 @@ Widget _buildStartRoomTab(BuildContext context) {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () => _navigateToNextPage(isCaller: false),
+                        onPressed: () {
+  final roomId = roomController.text.trim(); // ✅ get the roomId from input
+  if (roomId.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter a Room ID")),
+    );
+    return;
+  }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => JoinPage(roomId: roomId),
+    ),
+  );
+},
+
                         child: const Text("Join Room"),
                       ),
                     ),

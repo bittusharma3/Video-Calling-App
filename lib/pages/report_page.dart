@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
- import 'package:video_calling_app/widgets/common_appbar.dart';
+import 'package:video_calling_app/widgets/common_appbar.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -9,7 +9,7 @@ class ReportPage extends StatefulWidget {
 }
 
 class _ReportPageState extends State<ReportPage> {
-   final List<Map<String, String>> _reports = [
+  final List<Map<String, String>> _reports = [
     {"title": "Spam User", "description": "User was sending spam messages."},
     {
       "title": "Inappropriate Content",
@@ -43,7 +43,7 @@ class _ReportPageState extends State<ReportPage> {
               ),
               const SizedBox(height: 12),
               const Text(
-                "Here are your submitted reports. You can view details or manage them below.",
+                "Hereeee are your submitted reports. You can view details or manage them below.",
                 style: TextStyle(fontSize: 14, color: Colors.black54),
               ),
               const SizedBox(height: 20),
@@ -80,7 +80,7 @@ class _ReportPageState extends State<ReportPage> {
   }
 }
 
- class _ReportCard extends StatelessWidget {
+class _ReportCard extends StatelessWidget {
   final String title;
   final String description;
 
@@ -121,8 +121,7 @@ class _ReportPageState extends State<ReportPage> {
           Align(
             alignment: Alignment.bottomRight,
             child: TextButton(
-              onPressed: () {
-               },
+              onPressed: () {},
               child: const Text("View Details"),
             ),
           ),

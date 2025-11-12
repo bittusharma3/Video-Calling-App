@@ -146,21 +146,91 @@ function removeFromRoom(roomId, ws) {
   }
 }
 
-// Room handler
+// // Room handler
+// function handleRoom(ws, data) {
+//   const roomId = data.room || "default";
+//   rooms[roomId] = rooms[roomId] || [];
+//   if (!rooms[roomId].includes(ws)) rooms[roomId].push(ws);
+
+//   rooms[roomId].forEach((client) => {
+//     if (client !== ws && client.readyState === ws.OPEN) {
+//       client.send(JSON.stringify(data));
+//     }
+//   });
+
+//   ws.on("close", () => {
+//     removeFromRoom(roomId, ws);
+//   });
+// }
+
+
 function handleRoom(ws, data) {
   const roomId = data.room || "default";
+
+  // initialize room if missing
   rooms[roomId] = rooms[roomId] || [];
-  if (!rooms[roomId].includes(ws)) rooms[roomId].push(ws);
 
-  rooms[roomId].forEach((client) => {
-    if (client !== ws && client.readyState === ws.OPEN) {
-      client.send(JSON.stringify(data));
+  // 🟢 JOIN: add to room and notify others once
+  if (data.type === "join") {
+    if (!rooms[roomId].includes(ws)) {
+      rooms[roomId].push(ws);
+      ws.room = roomId; // 🔥 store for cleanup later
+      console.log(`✅ Client joined room: ${roomId}, total peers: ${rooms[roomId].length}`);
+    } else {
+      console.log(`↩️ Client already in room ${roomId}`);
     }
-  });
 
-  ws.on("close", () => {
+    // send joined message back to *only this* client
+    try {
+      ws.send(JSON.stringify({ type: "joined", room: roomId, peers: rooms[roomId].length }));
+    } catch (err) {
+      console.error("Error sending joined confirmation:", err);
+    }
+
+    // notify all *other* peers that a new one joined
+    rooms[roomId].forEach((client) => {
+      if (client !== ws && client.readyState === client.OPEN) {
+        try {
+          client.send(JSON.stringify({ type: "peer_joined", room: roomId }));
+        } catch (err) {
+          console.error("Error notifying peer_joined:", err);
+        }
+      }
+    });
+    return;
+  }
+
+  // 🟡 LEAVE: cleanly remove from room and notify others
+  if (data.type === "leave") {
     removeFromRoom(roomId, ws);
-  });
+    console.log(`👋 Client left room ${roomId}`);
+    const peersLeft = rooms[roomId] ? rooms[roomId].length : 0;
+    (rooms[roomId] || []).forEach((client) => {
+      if (client.readyState === client.OPEN) {
+        client.send(JSON.stringify({ type: "peer_left", room: roomId, peers: peersLeft }));
+      }
+    });
+    return;
+  }
+
+  // 🟠 ONLY forward offer/answer/candidate — do NOT send 'joined' again
+  const forwardTypes = ["offer", "answer", "candidate"];
+  if (forwardTypes.includes(data.type)) {
+    const list = rooms[roomId] || [];
+    list.forEach((client) => {
+      if (client !== ws && client.readyState === client.OPEN) {
+        try {
+          client.send(JSON.stringify(data));
+        } catch (err) {
+          console.error("Error forwarding signaling message:", err);
+        }
+      }
+    });
+    return;
+  }
+
+  // ⚪ Unknown message — just log it
+  console.log(`⚠️ Unhandled message type: ${data.type} in room ${roomId}`);
 }
 
 // Stranger handler
@@ -223,6 +293,7 @@ wss.on("connection", (ws, req) => {
     } catch {
       return;
     }
+    console.log('Message from', ws.path, 'data:', data);
 
     if (ws.path === "/rooms") handleRoom(ws, data);
     else if (ws.path === "/strangers") handleStranger(ws, data);
