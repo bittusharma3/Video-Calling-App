@@ -24,8 +24,7 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Info
-              Center(
+               Center(
                 child: Column(
                   children: [
                     const CircleAvatar(
@@ -53,8 +52,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 24),
 
-              // Account Details
-              const Text(
+               const Text(
                 "Account Details",
                 style: TextStyle(
                   fontSize: 18,
@@ -80,8 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 24),
 
-              // Settings
-              const Text(
+               const Text(
                 "Settings",
                 style: TextStyle(
                   fontSize: 18,
@@ -94,22 +91,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 icon: Icons.lock_outline,
                 title: "Change Password",
                 onTap: () {
-                  // TODO: implement change password
-                },
+                 },
               ),
               _SettingsCard(
                 icon: Icons.notifications_outlined,
                 title: "Notifications",
                 onTap: () {
-                  // TODO: implement notifications settings
-                },
+                 },
               ),
               _SettingsCard(
                 icon: Icons.logout_outlined,
                 title: "Logout",
                 onTap: () {
-                  // TODO: implement logout
-                },
+                 },
               ),
             ],
           ),
@@ -119,8 +113,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-// Reusable Profile Info Card
-class _ProfileInfoCard extends StatelessWidget {
+ class _ProfileInfoCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
@@ -167,8 +160,7 @@ class _ProfileInfoCard extends StatelessWidget {
   }
 }
 
-// Reusable Settings Card
-class _SettingsCard extends StatelessWidget {
+ class _SettingsCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final VoidCallback onTap;

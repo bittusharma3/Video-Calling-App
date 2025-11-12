@@ -62,8 +62,7 @@ class _ActivityPageState extends State<ActivityPage> {
               ),
               const SizedBox(height: 5),
 
-              // Activities List
-              Expanded(
+               Expanded(
                 child: ListView.separated(
                   itemCount: activities.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -81,8 +80,7 @@ class _ActivityPageState extends State<ActivityPage> {
   }
 }
 
-// ----------------- Activity Model -----------------
-class ActivityItem {
+ class ActivityItem {
   final IconData icon;
   final String title;
   final String subtitle;
@@ -94,8 +92,7 @@ class ActivityItem {
   });
 }
 
-// ----------------- Activity Card Widget -----------------
-class _ActivityCard extends StatelessWidget {
+ class _ActivityCard extends StatelessWidget {
   final ActivityItem activity;
 
   const _ActivityCard({required this.activity});

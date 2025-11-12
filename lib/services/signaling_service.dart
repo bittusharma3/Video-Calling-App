@@ -25,15 +25,13 @@ import '../config/app_config.dart';
 import 'signaling.dart';
 
 class SignalingService {
-  /// Initializes and connects the signaling for WebRTC calls.
-  static Future<Signaling> startSignaling({
+   static Future<Signaling> startSignaling({
     required RTCVideoRenderer localRenderer,
     required RTCVideoRenderer remoteRenderer,
     required String roomId,
     required bool isCaller,
   }) async {
-    // Use the wsUrl from AppConfig
-    final wsUrl = AppConfig.wsUrl;
+     final wsUrl = AppConfig.wsUrl;
 
     final signaling = Signaling(
       localRenderer,

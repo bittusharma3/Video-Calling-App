@@ -503,17 +503,15 @@ class _JoinPageState extends State<JoinPage> {
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
 
-    // 1️⃣ get camera stream first
-    await _initCamera();
+     await _initCamera();
 
-    // 2️⃣ start signaling (callee side)
-    try {
+     try {
       debugPrint('📞 JoinPage: connecting to signaling, room=${widget.roomId}');
       _signaling = await SignalingService.startSignaling(
         localRenderer: _localRenderer,
         remoteRenderer: _remoteRenderer,
         roomId: widget.roomId,
-        isCaller: false, // this device is the joiner
+        isCaller: false,  
       );
       debugPrint('✅ JoinPage: signaling started (isCaller=false)');
     } catch (e, st) {
@@ -626,16 +624,14 @@ class _JoinPageState extends State<JoinPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // remote video (fills background)
-          Positioned.fill(
+           Positioned.fill(
             child: _remoteRenderer.srcObject != null
                 ? RTCVideoView(_remoteRenderer,
                     objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover)
                 : Container(color: Colors.black),
           ),
 
-          // local preview overlay
-          Positioned(
+           Positioned(
             bottom: 120,
             right: 20,
             child: SizedBox(
@@ -650,8 +646,7 @@ class _JoinPageState extends State<JoinPage> {
             ),
           ),
 
-          // bottom controls
-          Positioned(
+           Positioned(
             bottom: 40,
             left: 0,
             right: 0,

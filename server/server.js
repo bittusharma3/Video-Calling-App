@@ -167,11 +167,9 @@ function removeFromRoom(roomId, ws) {
 function handleRoom(ws, data) {
   const roomId = data.room || "default";
 
-  // initialize room if missing
-  rooms[roomId] = rooms[roomId] || [];
+   rooms[roomId] = rooms[roomId] || [];
 
-  // 🟢 JOIN: add to room and notify others once
-  if (data.type === "join") {
+   if (data.type === "join") {
     if (!rooms[roomId].includes(ws)) {
       rooms[roomId].push(ws);
       ws.room = roomId; // 🔥 store for cleanup later
@@ -180,15 +178,13 @@ function handleRoom(ws, data) {
       console.log(`↩️ Client already in room ${roomId}`);
     }
 
-    // send joined message back to *only this* client
-    try {
+     try {
       ws.send(JSON.stringify({ type: "joined", room: roomId, peers: rooms[roomId].length }));
     } catch (err) {
       console.error("Error sending joined confirmation:", err);
     }
 
-    // notify all *other* peers that a new one joined
-    rooms[roomId].forEach((client) => {
+     rooms[roomId].forEach((client) => {
       if (client !== ws && client.readyState === client.OPEN) {
         try {
           client.send(JSON.stringify({ type: "peer_joined", room: roomId }));
@@ -200,8 +196,7 @@ function handleRoom(ws, data) {
     return;
   }
 
-  // 🟡 LEAVE: cleanly remove from room and notify others
-  if (data.type === "leave") {
+   if (data.type === "leave") {
     removeFromRoom(roomId, ws);
     console.log(`👋 Client left room ${roomId}`);
     const peersLeft = rooms[roomId] ? rooms[roomId].length : 0;
@@ -213,8 +208,7 @@ function handleRoom(ws, data) {
     return;
   }
 
-  // 🟠 ONLY forward offer/answer/candidate — do NOT send 'joined' again
-  const forwardTypes = ["offer", "answer", "candidate"];
+   const forwardTypes = ["offer", "answer", "candidate"];
   if (forwardTypes.includes(data.type)) {
     const list = rooms[roomId] || [];
     list.forEach((client) => {
@@ -229,12 +223,10 @@ function handleRoom(ws, data) {
     return;
   }
 
-  // ⚪ Unknown message — just log it
-  console.log(`⚠️ Unhandled message type: ${data.type} in room ${roomId}`);
+   console.log(`⚠️ Unhandled message type: ${data.type} in room ${roomId}`);
 }
 
-// Stranger handler
-function handleStranger(ws, data) {
+ function handleStranger(ws, data) {
   const key = "default";
 
   if (data.type === "find_stranger") {
@@ -275,8 +267,7 @@ function handleStranger(ws, data) {
   }
 }
 
-// Handle WebSocket upgrades
-server.on("upgrade", (req, socket, head) => {
+ server.on("upgrade", (req, socket, head) => {
   const { url } = req;
   wss.handleUpgrade(req, socket, head, (ws) => {
     ws.path = url;
@@ -284,8 +275,7 @@ server.on("upgrade", (req, socket, head) => {
   });
 });
 
-// On connection
-wss.on("connection", (ws, req) => {
+ wss.on("connection", (ws, req) => {
   ws.on("message", (message) => {
     let data;
     try {
@@ -300,11 +290,9 @@ wss.on("connection", (ws, req) => {
   });
 
   ws.on("close", () => {
-    // Remove from any rooms safely
-    Object.keys(rooms).forEach((id) => removeFromRoom(id, ws));
+     Object.keys(rooms).forEach((id) => removeFromRoom(id, ws));
 
-    // Remove from waiting users if present
-    for (const [key, socket] of waitingUsers.entries()) {
+     for (const [key, socket] of waitingUsers.entries()) {
       if (socket === ws) waitingUsers.delete(key);
     }
   });

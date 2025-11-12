@@ -250,8 +250,7 @@ class _CallPageState extends State<CallPage> {
   bool _micMuted = false;
   bool _usingFrontCamera = true;
 
-  // show loader while camera/signaling init completes
-  bool _initializing = true;
+   bool _initializing = true;
 
   @override
   void initState() {
@@ -263,11 +262,9 @@ class _CallPageState extends State<CallPage> {
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
 
-    // 1) get camera first so local preview is ready
-    await _initCamera();
+     await _initCamera();
 
-    // 2) start signaling after local preview exists
-    try {
+     try {
       _signaling = await SignalingService.startSignaling(
         localRenderer: _localRenderer,
         remoteRenderer: _remoteRenderer,
@@ -284,8 +281,7 @@ class _CallPageState extends State<CallPage> {
       }
     }
 
-    // slight delay to stabilize UI
-    await Future.delayed(const Duration(milliseconds: 200));
+     await Future.delayed(const Duration(milliseconds: 200));
     if (mounted) {
       setState(() => _initializing = false);
     }
@@ -315,8 +311,7 @@ class _CallPageState extends State<CallPage> {
         },
       };
 
-      // navigator.mediaDevices.getUserMedia may throw if device is busy
-      final stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+       final stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
 
       if (!mounted) return;
       setState(() {
@@ -352,8 +347,7 @@ class _CallPageState extends State<CallPage> {
 
     _usingFrontCamera = !_usingFrontCamera;
 
-    // stop tracks then re-initialize camera
-    for (var track in _localStream!.getTracks()) {
+     for (var track in _localStream!.getTracks()) {
       track.stop();
     }
 
@@ -361,8 +355,7 @@ class _CallPageState extends State<CallPage> {
   }
 
   void _hangUp() {
-    // safe dispose
-    try {
+     try {
       _signaling?.dispose();
     } catch (_) {}
     _localRenderer.srcObject = null;
@@ -393,15 +386,13 @@ class _CallPageState extends State<CallPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // show remote video if available, otherwise black bg
-          Positioned.fill(
+           Positioned.fill(
             child: _remoteRenderer.srcObject != null
                 ? RTCVideoView(_remoteRenderer)
                 : Container(color: Colors.black),
           ),
 
-          // local preview overlay
-          Positioned(
+           Positioned(
             bottom: 120,
             right: 20,
             child: SizedBox(
@@ -416,8 +407,7 @@ class _CallPageState extends State<CallPage> {
             ),
           ),
 
-          // controls
-          Positioned(
+           Positioned(
             bottom: 40,
             left: 0,
             right: 0,

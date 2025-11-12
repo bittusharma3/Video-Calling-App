@@ -771,8 +771,7 @@ class Signaling {
   bool _isCaller = false;
   final String wsUrl;
 
-  // persist the room id so all messages include it
-  late String _roomId;
+   late String _roomId;
 
   Signaling(this._localRenderer, this._remoteRenderer, {required this.wsUrl});
 
@@ -795,8 +794,7 @@ class Signaling {
       rethrow;
     }
 
-    // send join
-    final joinMsg = jsonEncode({'type': 'join', 'room': _roomId});
+     final joinMsg = jsonEncode({'type': 'join', 'room': _roomId});
     _channel.sink.add(joinMsg);
     debugPrint('✅ Sent join message: {type: join, room: $_roomId}');
 
@@ -856,8 +854,7 @@ class Signaling {
             case 'joined':
             case 'peer_joined':
               debugPrint('<< event: $type');
-              // if we are caller start the call (caller creates offer)
-              if (_isCaller) {
+               if (_isCaller) {
                 debugPrint('Peer joined; caller will start call');
                 await makeCall();
               }
@@ -875,8 +872,7 @@ class Signaling {
       },
       onDone: () {
         debugPrint('WebSocket closed by server');
-        // cleanup local resources
-        try {
+         try {
           dispose();
         } catch (_) {}
       },
@@ -895,8 +891,7 @@ class Signaling {
       debugPrint('ICE connection state: $state');
     };
 
-    // getMedia if needed
-    try {
+     try {
       _localStream ??= await navigator.mediaDevices.getUserMedia({
         'audio': true,
         'video': {'facingMode': 'user'}
@@ -909,14 +904,12 @@ class Signaling {
       return;
     }
 
-    // add local tracks
-    _localStream?.getTracks().forEach((track) {
+     _localStream?.getTracks().forEach((track) {
       _peerConnection?.addTrack(track, _localStream!);
       debugPrint('>> added local track: ${track.kind}');
     });
 
-    // onTrack — robust: some browsers send tracks inside event.streams, others not
-    _peerConnection!.onTrack = (RTCTrackEvent event) async {
+     _peerConnection!.onTrack = (RTCTrackEvent event) async {
       debugPrint('onTrack called, streams: ${event.streams.length}, track kind: ${event.track?.kind}');
       try {
         if (event.streams.isNotEmpty) {
@@ -924,8 +917,7 @@ class Signaling {
           _remoteRenderer.srcObject = _remoteStream;
           debugPrint('✅ Remote stream assigned to renderer (streams[0])');
         } else {
-          // fallback: create stream from track
-          if (_remoteStream == null) {
+           if (_remoteStream == null) {
             _remoteStream = await createLocalMediaStream('remoteStream');
           }
           if (event.track != null) {
@@ -939,8 +931,7 @@ class Signaling {
       }
     };
 
-    // send ICE candidates (include room)
-    _peerConnection!.onIceCandidate = (RTCIceCandidate? candidate) {
+     _peerConnection!.onIceCandidate = (RTCIceCandidate? candidate) {
       debugPrint('local ICE candidate event: ${candidate?.candidate}');
       if (candidate != null &&
           candidate.candidate != null &&

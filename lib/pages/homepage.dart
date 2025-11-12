@@ -26,8 +26,7 @@ class _HomepageState extends State<Homepage> {
 
     setState(() => isLoading = true);
 
-    // Optional: simulate a small delay for smooth UX
-    await Future.delayed(const Duration(milliseconds: 300));
+     await Future.delayed(const Duration(milliseconds: 300));
 
     if (!mounted) return;
     setState(() => isLoading = false);
@@ -57,11 +56,9 @@ class _HomepageState extends State<Homepage> {
           ],
           body: TabBarView(
             children: [
-              // 🟣 TAB 1 — Start Room (PRO UI)
-              _buildStartRoomTab(context),
+               _buildStartRoomTab(context),
 
-              // 🟢 TAB 2 — Random Call (untouched)
-              Column(
+               Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -182,8 +179,7 @@ class _HomepageState extends State<Homepage> {
                 ],
               ),
 
-              // 🟡 TAB 3 — Join Room (PRO UI)
-              _buildJoinRoomTab(context),
+               _buildJoinRoomTab(context),
             ],
           ),
         ),
@@ -336,7 +332,7 @@ Widget _buildStartRoomTab(BuildContext context) {
                           MaterialPageRoute(
                             builder: (_) => CallPage(
                               roomId: roomId,
-                              isCaller: true, // ✅ very important
+                              isCaller: true,  
                             ),
                           ),
                         );
@@ -358,8 +354,7 @@ Widget _buildStartRoomTab(BuildContext context) {
 }
 
 
-  // ========================= JOIN ROOM TAB =========================
-  Widget _buildJoinRoomTab(BuildContext context) {
+   Widget _buildJoinRoomTab(BuildContext context) {
     return Center(
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
@@ -403,7 +398,7 @@ Widget _buildStartRoomTab(BuildContext context) {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-  final roomId = roomController.text.trim(); // ✅ get the roomId from input
+  final roomId = roomController.text.trim();  
   if (roomId.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Please enter a Room ID")),

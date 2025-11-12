@@ -45,8 +45,7 @@ class _PlansPageState extends State<PlansPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Page title
-              const Text(
+               const Text(
                 "💎 Plans & Rooms",
                 style: TextStyle(
                   fontSize: 24,
@@ -61,8 +60,7 @@ class _PlansPageState extends State<PlansPage> {
               ),
               const SizedBox(height: 24),
 
-              // Subscription plans
-              const Text(
+               const Text(
                 "Subscription Plans",
                 style: TextStyle(
                   fontSize: 18,
@@ -74,8 +72,7 @@ class _PlansPageState extends State<PlansPage> {
               ...plans.map((plan) => _SubscriptionCard(plan: plan)),
 
               const SizedBox(height: 24),
-              // Room Actions
-              const Text(
+               const Text(
                 "Rooms & Calls",
                 style: TextStyle(
                   fontSize: 18,
@@ -110,8 +107,7 @@ class _PlansPageState extends State<PlansPage> {
   }
 }
 
-// ----------------- Subscription Plan Model -----------------
-class SubscriptionPlan {
+ class SubscriptionPlan {
   final String title;
   final String price;
   final List<String> features;
@@ -125,8 +121,7 @@ class SubscriptionPlan {
   });
 }
 
-// ----------------- Subscription Card Widget -----------------
-class _SubscriptionCard extends StatelessWidget {
+ class _SubscriptionCard extends StatelessWidget {
   final SubscriptionPlan plan;
   const _SubscriptionCard({required this.plan});
 
@@ -193,8 +188,7 @@ class _SubscriptionCard extends StatelessWidget {
   }
 }
 
-// ----------------- Room Action Card Widget -----------------
-class _RoomActionCard extends StatelessWidget {
+ class _RoomActionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
