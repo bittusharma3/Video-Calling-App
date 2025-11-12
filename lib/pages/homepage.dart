@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'call_page.dart';
 import 'join_page.dart';
+import '../widgets/common_appbar.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -11,10 +13,10 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   final TextEditingController roomController = TextEditingController();
+  bool isLoading = false;
 
-  void _navigateToNextPage({required bool isCaller}) {
+  void _navigateToNextPage({required bool isCaller}) async {
     final roomId = roomController.text.trim();
-
     if (roomId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter a valid Room ID")),
@@ -22,11 +24,17 @@ class _HomepageState extends State<Homepage> {
       return;
     }
 
+    setState(() => isLoading = true);
+
+     await Future.delayed(const Duration(milliseconds: 300));
+
+    if (!mounted) return;
+    setState(() => isLoading = false);
+
     final nextPage = isCaller
         ? CallPage(roomId: roomId)
         : JoinPage(roomId: roomId);
-
-    Navigator.push(context, MaterialPageRoute(builder: (context) => nextPage));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => nextPage));
   }
 
   @override
@@ -37,122 +45,387 @@ class _HomepageState extends State<Homepage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Center(
-          child: const Text(
-            "V I D E O - C H A T",
-            style: TextStyle(color: Colors.white),
+    return DefaultTabController(
+      initialIndex: 2,
+      length: 3,
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            const CommonSliverAppBar(showTabBar: true),
+          ],
+          body: TabBarView(
+            children: [
+               _buildStartRoomTab(context),
+
+               Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.wb_sunny_outlined, size: 30),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                "Make A Wish",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                "Ur Wish = Downfall",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                        const Positioned(
+                          left: 70,
+                          bottom: 130,
+                          child: Icon(
+                            Icons.tune_outlined,
+                            size: 26,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const Positioned(
+                          right: 70,
+                          bottom: 130,
+                          child: Icon(
+                            Icons.cameraswitch_outlined,
+                            size: 26,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 100,
+                          child: Material(
+                            color: Colors.transparent,
+                            shape: const CircleBorder(),
+                            elevation: 8,
+                            child: InkWell(
+                              onTap: () => _navigateToNextPage(isCaller: true),
+                              customBorder: const CircleBorder(),
+                              child: Ink(
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Color(0xFF6A11CB),
+                                      Color(0xFF2575FC),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(45),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "START",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Positioned(
+                          bottom: 50,
+                          child: Text(
+                            "Go Live Now",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+               _buildJoinRoomTab(context),
+            ],
           ),
         ),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white, width: 0.5),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.menu, color: Colors.white),
-            ),
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.menu, color: Colors.white),
-              ),
-            ),
-          ),
-        ],
       ),
-      backgroundColor: const Color.fromARGB(255, 23, 23, 23),
+    );
+  }
 
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextField(
-                  controller: roomController,
-                  style: const TextStyle(color: Colors.white),
+  // ========================= START ROOM TAB =========================
+//   // Widget _buildStartRoomTab(BuildContext context) {
+//   //   return Center(
+//   //     child: AnimatedSwitcher(
+//   //       duration: const Duration(milliseconds: 300),
+//   //       child: isLoading
+//   //           ? const CircularProgressIndicator()
+//   //           : Container(
+//   //               width: 350,
+//   //               padding: const EdgeInsets.all(24),
+//   //               decoration: BoxDecoration(
+//   //                 color: Colors.white,
+//   //                 borderRadius: BorderRadius.circular(16),
+//   //                 boxShadow: [
+//   //                   BoxShadow(
+//   //                     color: Colors.black.withOpacity(0.1),
+//   //                     blurRadius: 12,
+//   //                     offset: const Offset(0, 4),
+//   //                   ),
+//   //                 ],
+//   //               ),
+//   //               child: Column(
+//   //                 mainAxisSize: MainAxisSize.min,
+//   //                 children: [
+//   //                   Text(
+//   //                     "Start a New Room",
+//   //                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
+//   //                       fontWeight: FontWeight.bold,
+//   //                     ),
+//   //                   ),
+//   //                   const SizedBox(height: 20),
+//   //                   TextField(
+//   //                     controller: roomController,
+//   //                     decoration: InputDecoration(
+//   //                       labelText: "Enter Room ID",
+//   //                       border: OutlineInputBorder(
+//   //                         borderRadius: BorderRadius.circular(12),
+//   //                       ),
+//   //                     ),
+//   //                   ),
+//   //                   const SizedBox(height: 25),
+//   //                   SizedBox(
+//   //                     width: double.infinity,
+//   //                     child: ElevatedButton(
+//   //                       onPressed: () => _navigateToNextPage(isCaller: true),
+//   //                       child: const Text("Confirm & Start"),
+//   //                     ),
+//   //                   ),
+//   //                   const SizedBox(height: 10),
+//   //                   const Text(
+//   //                     "Create a new private room to start a secure call.",
+//   //                     textAlign: TextAlign.center,
+//   //                     style: TextStyle(fontSize: 13, color: Colors.black54),
+//   //                   ),
+//   //                 ],
+//   //               ),
+//   //             ),
+//   //     ),
+//   //   );
+//   // }
 
-                  decoration: const InputDecoration(
-                    labelText: 'Enter Room ID',
-                    labelStyle: TextStyle(color: Colors.white),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
+// // Replace your current _buildStartRoomTab method with this:
+// Widget _buildStartRoomTab(BuildContext context) {
+//   return Center(
+//     child: SizedBox(
+//       width: 350,
+//       child: ElevatedButton(
+//         onPressed: () {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(builder: (_) => const CallPage(roomId: roomId , isCaller: true)),
+//           );
+//         },
+//         child: const Padding(
+//           padding: EdgeInsets.symmetric(vertical: 20),
+//           child: Text(
+//             "Go to Start Room",
+//             style: TextStyle(fontSize: 16),
+//           ),
+//         ),
+//       ),
+//     ),
+//   );
+// }
+
+
+Widget _buildStartRoomTab(BuildContext context) {
+  return Center(
+    child: AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: isLoading
+          ? const CircularProgressIndicator()
+          : Container(
+              width: 350,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Start a New Room",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: roomController,
+                    decoration: InputDecoration(
+                      labelText: "Enter Room ID",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white, width: 2),
+                  ),
+                  const SizedBox(height: 25),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final roomId = roomController.text.trim();
+                        if (roomId.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Please enter a Room ID"),
+                            ),
+                          );
+                          return;
+                        }
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CallPage(
+                              roomId: roomId,
+                              isCaller: true,  
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text("Confirm & Start"),
                     ),
-
-                    border: OutlineInputBorder(),
                   ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 0, 0, 0),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Create a new private room to start a secure call.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13, color: Colors.black54),
                   ),
-                  icon: const Icon(Icons.video_call, color: Colors.white),
-                  label: const Text(
-                    "Create Call",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: () => _navigateToNextPage(isCaller: true),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 0, 0, 0),
-                  ),
-                  icon: const Icon(Icons.meeting_room, color: Colors.white),
-                  label: const Text(
-                    "Join Call",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: () => _navigateToNextPage(isCaller: false),
-                ),
-                const SizedBox(height: 210),
-                const Text(
-                  '''Terms and Conditions
-
-Welcome to [Your App Name], your gateway to spontaneous video chats with strangers around the world! By using our app, you agree to follow these simple but important rules to keep the experience fun, safe, and respectful for everyone.
-
-Our platform connects you randomly to other users for live video conversations — a place to meet new people, share moments, and explore new friendships. However, please remember that with great freedom comes great responsibility. You must not share any content that is offensive, harmful, hateful, or illegal. Harassment, hate speech, explicit content, and any abusive behavior are strictly prohibited. We reserve the right to monitor conversations and take immediate action against users who violate these rules, including banning or suspending accounts without warning.
-
-Your privacy and safety are very important to us. While we do not record or store your video or audio streams, please be aware that you’re connecting directly with strangers, and we cannot guarantee their identity or intentions. Always use caution and avoid sharing personal or sensitive information.
-
-This app is designed for users aged 18 and over. If you’re underage, please exit now. By continuing, you acknowledge the risks involved and agree not to hold us responsible for any issues arising from your use of the app.
-
-We may update these Terms and Conditions from time to time to improve your experience — so be sure to check back regularly. If you don’t agree with any part of these terms, please discontinue using the app immediately.
-
-Thank you for being part of our community. Now go ahead, connect, chat, and have fun — responsibly!''',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ),
+    ),
+  );
+}
+
+
+   Widget _buildJoinRoomTab(BuildContext context) {
+    return Center(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: isLoading
+            ? const CircularProgressIndicator()
+            : Container(
+                width: 350,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Join an Existing Room",
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: roomController,
+                      decoration: InputDecoration(
+                        labelText: "Enter Room ID",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+  final roomId = roomController.text.trim();  
+  if (roomId.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter a Room ID")),
+    );
+    return;
+  }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => JoinPage(roomId: roomId),
+    ),
+  );
+},
+
+                        child: const Text("Join Room"),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Enter your room ID to connect instantly.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }
