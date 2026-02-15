@@ -106,7 +106,6 @@ This project enables two peers to establish a direct real-time audio/video conne
 
 ---
 
-
 ## 📄 License
 
 This project is open-source and available under the MIT License not completed yet . 
