@@ -6,7 +6,7 @@ class AppConfig {
   static const String _prodUrl = 'wss://video-calling-app-ernw.onrender.com/rooms';
 
   // Local development URL fallback (optional)
-  static const String _devUrl = 'ws://192.168.1.9:8080/rooms';
+  static const String _devUrl = 'ws://192.168.1.39:8080/rooms';
 
   static String get wsUrl {
     // If you run on production (web or mobile build release), use prod URL
